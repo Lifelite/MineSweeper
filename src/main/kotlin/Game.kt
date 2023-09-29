@@ -1,19 +1,20 @@
 package minesweeper
 
-import kotlin.random.Random
-
-
-
 class MinefieldBuild(
-    private val rows:Int? = 9,
-    private val columns: Int? = 9,
-    private val bombs: Int? = 10)
+    val rows:Int? = 9,
+    val columns: Int? = 9,
+    val bombs: Int? = 10)
 {
     var minefield: MutableList<MutableList<String>>? = null
 
     init {
         buildBySize()
 
+    }
+
+    private fun addHints(field:MutableList<MutableList<String>>): MutableList<MutableList<String>> {
+        //Need to find each X, note their index, then use that index to determine the position of each X
+        TODO()
     }
 
     private fun buildBySize(): MutableList<MutableList<String>> {
@@ -34,8 +35,8 @@ class MinefieldBuild(
         }
         var b = 0
         while(b < bombs!!) {
-            val number:Int = (0 until rows).random()
-            val number2:Int = (0 until columns).random()
+            val number:Int = (0..<rows).random()
+            val number2:Int = (0..<columns).random()
             if (column[number][number2] == ".") {
                 column[number][number2] = "X"
             }else{
@@ -49,14 +50,49 @@ class MinefieldBuild(
 }
 
 
-fun main() {
+
+fun printer(field:MutableList<MutableList<String>>?){
     var pfield = ""
-    val minefield = MinefieldBuild().minefield
-    for (row in minefield!!) {
+
+    for (row in field!!) {
         for (item in row){
             pfield += item
         }
         pfield += "\n"
     }
     print(pfield)
+}
+
+class Validator(var userData:String) {
+
+    private fun isBlank(userData: String): Boolean {
+        return userData != ""
+
+    }
+
+    fun isInt(): Int {
+        if (isBlank(userData)) {
+            while (true)
+                try {
+                    return userData.toInt()
+                } catch (e: Exception) {
+                    print(e)
+                    print("Enter in a valid number")
+                    this.userData = readln()
+                    continue
+                }
+        }
+        else{
+            return 10
+        }
+    }
+}
+
+
+fun main() {
+    print("How many mines do you want on the field? ")
+    val userInput = readln()
+    val v = Validator(userInput).isInt()
+    val minefield = MinefieldBuild(bombs = v).minefield
+    printer(minefield)
 }
