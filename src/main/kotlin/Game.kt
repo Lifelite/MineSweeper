@@ -6,12 +6,13 @@ class MinefieldBuild(
     val bombs: Int? = 10
 ) {
     var minefield: MutableList<MutableList<String>>? = null
-    private var bombIndexes: MutableList<IntArray>? = null
+    private var bombIndexes: MutableList<IntArray>? = mutableListOf()
 
     init {
         buildBySize()
 
     }
+
     private fun hintHelper(item: String): String {
         return when (item) {
             "X" -> "X"
@@ -81,22 +82,45 @@ class MinefieldBuild(
                 }
 
                 else -> {
-                    minefield!![coordinates[0] + 1][coordinates[1]] =
-                        hintHelper(minefield!![coordinates[0] + 1][coordinates[1]])
-                    minefield!![coordinates[0] + 1][coordinates[1] - 1] =
-                        hintHelper(minefield!![coordinates[0] + 1][coordinates[1] - 1])
-                    minefield!![coordinates[0] + 1][coordinates[1] + 1] =
-                        hintHelper(minefield!![coordinates[0] + 1][coordinates[1] + 1])
-                    minefield!![coordinates[0] - 1][coordinates[1]] =
-                        hintHelper(minefield!![coordinates[0] - 1][coordinates[1]])
-                    minefield!![coordinates[0] - 1][coordinates[1] - 1] =
-                        hintHelper(minefield!![coordinates[0] - 1][coordinates[1] - 1])
-                    minefield!![coordinates[0] - 1][coordinates[1] + 1] =
-                        hintHelper(minefield!![coordinates[0] - 1][coordinates[1] + 1])
-                    minefield!![coordinates[0]][coordinates[1] + 1] =
-                        hintHelper(minefield!![coordinates[0]][coordinates[1] + 1])
-                    minefield!![coordinates[0]][coordinates[1] - 1] =
-                        hintHelper(minefield!![coordinates[0]][coordinates[1] - 1])
+                    when(coordinates[1]) {
+                        0 -> {
+                            minefield!![coordinates[0] - 1][0] = hintHelper(minefield!![coordinates[0] - 1][0])
+                            minefield!![coordinates[0] - 1][1] = hintHelper(minefield!![coordinates[0] - 1][1])
+                            minefield!![coordinates[0]][1] = hintHelper(minefield!![coordinates[0]][1])
+                            minefield!![coordinates[0] + 1][0] = hintHelper(minefield!![coordinates[0] + 1][0])
+                            minefield!![coordinates[0] + 1][1] = hintHelper(minefield!![coordinates[0] + 1][1])
+                        }
+                        columns!! - 1 -> {
+                            minefield!![coordinates[0] - 1][columns - 1] = hintHelper(minefield!![coordinates[0] - 1][columns - 1])
+                            minefield!![coordinates[0] - 1][columns - 2] = hintHelper(minefield!![coordinates[0] - 1][columns - 2])
+                            minefield!![coordinates[0]][columns - 2] = hintHelper(minefield!![coordinates[0]][columns - 2])
+                            minefield!![coordinates[0] + 1][columns - 1] = hintHelper(minefield!![coordinates[0] + 1][columns - 1])
+                            minefield!![coordinates[0] + 1][columns - 2] = hintHelper(minefield!![coordinates[0] + 1][columns - 2])
+                        }
+                        else -> {
+                            minefield!![coordinates[0] + 1][coordinates[1]] =
+                                hintHelper(minefield!![coordinates[0] + 1][coordinates[1]])
+                            minefield!![coordinates[0] + 1][coordinates[1] - 1] =
+                                hintHelper(minefield!![coordinates[0] + 1][coordinates[1] - 1])
+                            minefield!![coordinates[0] + 1][coordinates[1] + 1] =
+                                hintHelper(minefield!![coordinates[0] + 1][coordinates[1] + 1])
+                            minefield!![coordinates[0] - 1][coordinates[1]] =
+                                hintHelper(minefield!![coordinates[0] - 1][coordinates[1]])
+                            minefield!![coordinates[0] - 1][coordinates[1] - 1] =
+                                hintHelper(minefield!![coordinates[0] - 1][coordinates[1] - 1])
+                            minefield!![coordinates[0] - 1][coordinates[1] + 1] =
+                                hintHelper(minefield!![coordinates[0] - 1][coordinates[1] + 1])
+                            minefield!![coordinates[0]][coordinates[1] + 1] =
+                                hintHelper(minefield!![coordinates[0]][coordinates[1] + 1])
+                            minefield!![coordinates[0]][coordinates[1] - 1] =
+                                hintHelper(minefield!![coordinates[0]][coordinates[1] - 1])
+                        }
+                    }
+
+
+
+
+
 
                 }
             }
@@ -121,8 +145,8 @@ class MinefieldBuild(
         }
         var b = 0
         while (b < bombs!!) {
-            val number: Int = (0..<rows).random()
-            val number2: Int = (0..<columns).random()
+            val number: Int = (0 until rows).random()
+            val number2: Int = (0 until columns).random()
             if (column[number][number2] == ".") {
                 column[number][number2] = "X"
                 bombIndexes?.add(intArrayOf(number, number2))
