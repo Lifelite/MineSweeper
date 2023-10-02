@@ -6,7 +6,7 @@ class MinefieldBuild(
     val bombs: Int? = 10
 ) {
     var minefield: MutableList<MutableList<String>>? = null
-    private var bombIndexes: MutableList<IntArray>? = mutableListOf()
+    var bombIndexes: MutableList<MutableList<Int>>? = mutableListOf()
 
     init {
         buildBySize()
@@ -25,7 +25,7 @@ class MinefieldBuild(
         }
     }
 
-    private fun addHints(indexes: MutableList<IntArray>?) {
+    private fun addHints(indexes: MutableList<MutableList<Int>>?) {
         for (coordinates in indexes!!) {
             when (coordinates[0]) {
                 0 -> {
@@ -82,7 +82,7 @@ class MinefieldBuild(
                 }
 
                 else -> {
-                    when(coordinates[1]) {
+                    when (coordinates[1]) {
                         0 -> {
                             minefield!![coordinates[0] - 1][0] = hintHelper(minefield!![coordinates[0] - 1][0])
                             minefield!![coordinates[0] - 1][1] = hintHelper(minefield!![coordinates[0] - 1][1])
@@ -90,13 +90,20 @@ class MinefieldBuild(
                             minefield!![coordinates[0] + 1][0] = hintHelper(minefield!![coordinates[0] + 1][0])
                             minefield!![coordinates[0] + 1][1] = hintHelper(minefield!![coordinates[0] + 1][1])
                         }
+
                         columns!! - 1 -> {
-                            minefield!![coordinates[0] - 1][columns - 1] = hintHelper(minefield!![coordinates[0] - 1][columns - 1])
-                            minefield!![coordinates[0] - 1][columns - 2] = hintHelper(minefield!![coordinates[0] - 1][columns - 2])
-                            minefield!![coordinates[0]][columns - 2] = hintHelper(minefield!![coordinates[0]][columns - 2])
-                            minefield!![coordinates[0] + 1][columns - 1] = hintHelper(minefield!![coordinates[0] + 1][columns - 1])
-                            minefield!![coordinates[0] + 1][columns - 2] = hintHelper(minefield!![coordinates[0] + 1][columns - 2])
+                            minefield!![coordinates[0] - 1][columns - 1] =
+                                hintHelper(minefield!![coordinates[0] - 1][columns - 1])
+                            minefield!![coordinates[0] - 1][columns - 2] =
+                                hintHelper(minefield!![coordinates[0] - 1][columns - 2])
+                            minefield!![coordinates[0]][columns - 2] =
+                                hintHelper(minefield!![coordinates[0]][columns - 2])
+                            minefield!![coordinates[0] + 1][columns - 1] =
+                                hintHelper(minefield!![coordinates[0] + 1][columns - 1])
+                            minefield!![coordinates[0] + 1][columns - 2] =
+                                hintHelper(minefield!![coordinates[0] + 1][columns - 2])
                         }
+
                         else -> {
                             minefield!![coordinates[0] + 1][coordinates[1]] =
                                 hintHelper(minefield!![coordinates[0] + 1][coordinates[1]])
@@ -116,10 +123,6 @@ class MinefieldBuild(
                                 hintHelper(minefield!![coordinates[0]][coordinates[1] - 1])
                         }
                     }
-
-
-
-
 
 
                 }
@@ -145,11 +148,11 @@ class MinefieldBuild(
         }
         var b = 0
         while (b < bombs!!) {
-            val number: Int = (0 until rows).random()
-            val number2: Int = (0 until columns).random()
+            val number: Int = (0..<rows).random()
+            val number2: Int = (0..<columns).random()
             if (column[number][number2] == ".") {
                 column[number][number2] = "X"
-                bombIndexes?.add(intArrayOf(number, number2))
+                bombIndexes?.add(mutableListOf(number, number2))
             } else {
                 continue
             }
@@ -161,20 +164,85 @@ class MinefieldBuild(
     }
 }
 
+class GamePlay(minefield: MutableList<MutableList<String>>, bombs: Int, bombIndexes: MutableList<MutableList<Int>>) {
+    private var gameMinefield = minefield
+    private var gameBombs = bombs
+    private var indexes = bombIndexes
 
-fun printer(field: MutableList<MutableList<String>>?) {
-    var pfield = ""
-
-    for (row in field!!) {
-        for (item in row) {
-            pfield += item
+    private fun maskMinefield() {
+        for (i in indexes) {
+            gameMinefield[i[0]][i[1]] = "."
         }
-        pfield += "\n"
     }
-    print(pfield)
+
+    fun game() {
+        maskMinefield()
+        printer(gameMinefield)
+        while (this.gameBombs > 0) {
+
+            print("\nSet/delete mines marks (x and y coordinates): ")
+            val uInput: String = readln()
+            val validatedInput: MutableList<Int> = Validator(uInput).isCoordinate() ?: continue
+            val marker = this.gameMinefield[validatedInput[0]][validatedInput[1]]
+            if (validatedInput in indexes) when (marker) {
+                "." -> {
+                    this.gameMinefield[validatedInput[0]][validatedInput[1]] = "*"
+                    printer(gameMinefield)
+                    this.gameBombs -= 1
+                    continue
+                }
+
+                "*" -> {
+                    this.gameMinefield[validatedInput[0]][validatedInput[1]] = "."
+                    printer(gameMinefield)
+                    this.gameBombs += 1
+                    continue
+                }
+
+                else -> {
+                    throw Exception("\nSomething went wrong, unexpected character in Minefield\n")
+                }
+            } else try {
+                marker.toInt()
+                print("\nThere is a number here!\n")
+                continue
+            } catch (e: Exception) {
+                if (marker == ".") {
+                    this.gameMinefield[validatedInput[0]][validatedInput[1]] = "*"
+                    printer(gameMinefield)
+                    continue
+                }else{
+                    this.gameMinefield[validatedInput[0]][validatedInput[1]] = "."
+                    printer(gameMinefield)
+                    continue
+                }
+            }
+        }
+        print("\n\nCongratulations! You found all the mines!")
+
+    }
+
+
+    private fun printer(field: MutableList<MutableList<String>>?) {
+        var pfield = " │123456789│\n—│—————————│\n"
+        var i = 1
+        for (row in field!!) {
+            pfield += "$i|"
+            for (item in row) {
+                pfield += item
+            }
+            pfield += "|"
+            pfield += "\n"
+            i++
+        }
+        pfield += "—│—————————│\n"
+        print(pfield)
+    }
+
+
 }
 
-class Validator(var userData: String) {
+class Validator(private var userData: String) {
 
     private fun isBlank(userData: String): Boolean {
         return userData != ""
@@ -187,14 +255,33 @@ class Validator(var userData: String) {
                 try {
                     return userData.toInt()
                 } catch (e: Exception) {
-                    print(e)
-                    print("Enter in a valid number")
+                    print("\nEnter in a valid number: ")
                     this.userData = readln()
                     continue
                 }
         } else {
             return 10
         }
+    }
+
+    fun isCoordinate(): MutableList<Int>? {
+        try {
+            val userCoordinates = this.userData.split(" ").toTypedArray()
+            if (userCoordinates.size != 2) {
+                print("\nInvalid Entry, only 2 coordinates allowed, separated by space:  ")
+                return null
+            }
+            val xCoordinate = userCoordinates[1].toInt() - 1
+            val yCoordinate = userCoordinates[0].toInt() - 1
+            return mutableListOf(
+                xCoordinate,
+                yCoordinate
+            )
+        } catch (e: Exception) {
+            print("\nInvalid Entry, make sure to only type the coordinates separated by space:  ")
+            return null
+        }
+
     }
 }
 
@@ -203,6 +290,8 @@ fun main() {
     print("How many mines do you want on the field? ")
     val userInput = readln()
     val v = Validator(userInput).isInt()
-    val minefield = MinefieldBuild(bombs = v).minefield
-    printer(minefield)
+    val m = MinefieldBuild(bombs = v)
+    val minefield = m.minefield
+    val gp = GamePlay(minefield!!, v, m.bombIndexes!!)
+    gp.game()
 }
